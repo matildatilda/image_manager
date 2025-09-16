@@ -1,8 +1,8 @@
 name: Deploy Frontend
-on:
-  push:
-    branches: [main]
-    paths: ['frontend/**']
+# on:
+#   push:
+#     branches: [main]
+#     paths: ['frontend/**']
 on:
   workflow_dispatch:  # 手動実行ボタンを追加
   push:
