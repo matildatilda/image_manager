@@ -15,7 +15,7 @@ export default function Home() {
 
   const handleImageUpload = (file: File, preview: string) => {
     const newImage: ImageItem = {
-      id: `${Date.now()}-${Math.random()}`,
+      id: crypto.randomUUID(),
       preview,
       file,
     };

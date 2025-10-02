@@ -27,14 +27,14 @@ export default function ImageGallery({ images, onDelete }: ImageGalleryProps) {
         {images.map((image) => (
           <div
             key={image.id}
-            className="relative group bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden aspect-square"
+            className="relative group bg-white dark:bg-gray-800 rounded-lg overflow-hidden aspect-square"
           >
             <img
               src={image.preview}
               alt={image.file.name}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain relative z-0"
             />
-            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-opacity flex items-center justify-center">
+            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-opacity flex items-center justify-center pointer-events-none group-hover:pointer-events-auto relative z-10">
               <div className="opacity-0 group-hover:opacity-100 transition-opacity space-x-2">
                 <button
                   onClick={() => {

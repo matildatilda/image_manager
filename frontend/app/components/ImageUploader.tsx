@@ -12,9 +12,13 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && file.type.startsWith("image/")) {
-      processFile(file);
+    const files = e.target.files;
+    if (files) {
+      Array.from(files).forEach((file) => {
+        if (file.type.startsWith("image/")) {
+          processFile(file);
+        }
+      });
     }
   };
 
@@ -24,6 +28,8 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
       const previewUrl = reader.result as string;
       setPreview(previewUrl);
       onImageUpload(file, previewUrl);
+      // Clear preview after a short delay to allow uploading multiple images
+      setTimeout(() => setPreview(null), 1000);
     };
     reader.readAsDataURL(file);
   };
@@ -42,9 +48,13 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
     e.preventDefault();
     setIsDragging(false);
 
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith("image/")) {
-      processFile(file);
+    const files = e.dataTransfer.files;
+    if (files) {
+      Array.from(files).forEach((file) => {
+        if (file.type.startsWith("image/")) {
+          processFile(file);
+        }
+      });
     }
   };
 
@@ -69,6 +79,7 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
           ref={fileInputRef}
           type="file"
           accept="image/*"
+          multiple
           onChange={handleFileChange}
           className="hidden"
         />
