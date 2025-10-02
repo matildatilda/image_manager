@@ -107,9 +107,149 @@ frontend/
 - [x] 削除機能が動作する
 - [x] 複数画像を一度にアップロードできる
 
+## バックエンドAPI機能
+
+### 概要
+画像アップロード、保存、管理を行うExpressベースのRESTful APIを実装しました。
+
+### 技術スタック
+- **フレームワーク**: Express.js (Node.js)
+- **認証**: JWT (jsonwebtoken) + bcrypt
+- **ファイル処理**: Multer (メモリストレージ)
+- **画像処理**: Sharp (サムネイル生成)
+- **ストレージ**: AWS S3 (本番) / LocalStack (開発)
+- **セキュリティ**: Helmet, CORS, Rate Limiting
+
+### API エンドポイント
+
+#### 認証関連 (`/api/auth`)
+1. **POST /api/auth/register**
+   - ユーザー登録
+   - bcryptでパスワードハッシュ化
+   - JWTトークン発行（有効期限7日）
+
+2. **POST /api/auth/login**
+   - ログイン認証
+   - パスワード検証
+   - JWTトークン発行
+
+3. **GET /api/auth/me**
+   - トークン検証
+   - ユーザー情報取得
+
+#### 画像管理 (`/api/images`)
+1. **GET /api/images**
+   - ユーザーの画像一覧取得
+   - 認証必須
+   - S3から署名付きURL生成
+
+2. **POST /api/images/upload**
+   - 画像アップロード（5MB制限）
+   - 認証必須
+   - サムネイル自動生成（200x200px）
+   - オリジナルとサムネイルをS3に保存
+
+3. **DELETE /api/images/:imageId**
+   - 画像削除
+   - 認証必須
+   - S3からファイル削除
+
+### 主要機能実装
+
+#### 1. 認証ミドルウェア ([auth.js](backend/src/middleware/auth.js:1))
+- JWTトークン検証
+- トークン有効期限チェック
+- リクエストにユーザー情報を付与
+
+#### 2. S3サービス ([s3.js](backend/src/services/s3.js:1))
+- LocalStack対応（開発環境）
+- バケット自動初期化
+- 画像アップロード（メタデータ付き）
+- 署名付きURL生成（1時間有効）
+- ユーザー別画像一覧取得
+- 画像削除
+
+#### 3. 画像処理サービス ([imageProcessor.js](backend/src/services/imageProcessor.js:1))
+- サムネイル生成（Sharp使用）
+- 画像リサイズ機能
+- メタデータ取得
+
+#### 4. セキュリティ機能 ([app.js](backend/src/app.js:1))
+- Helmet: HTTPヘッダーセキュリティ
+- CORS: オリジン制限
+- Rate Limiting: 15分間100リクエスト制限
+- エラーハンドリング: グローバルエラー処理
+
+### ファイル構成
+
+```
+backend/
+├── src/
+│   ├── app.js                    # メインアプリケーション
+│   ├── middleware/
+│   │   └── auth.js              # JWT認証ミドルウェア
+│   ├── routes/
+│   │   ├── auth.js              # 認証ルート
+│   │   └── images.js            # 画像管理ルート
+│   └── services/
+│       ├── s3.js                # S3サービス
+│       └── imageProcessor.js    # 画像処理サービス
+├── Dockerfile                    # コンテナ設定
+├── package.json                  # 依存関係
+└── README.md                     # ドキュメント
+```
+
+### 環境変数
+
+```env
+PORT=8080
+NODE_ENV=development
+CORS_ORIGIN=http://localhost:3000
+JWT_SECRET=your-secret-key
+AWS_REGION=ap-northeast-1
+AWS_ACCESS_KEY_ID=test
+AWS_SECRET_ACCESS_KEY=test
+S3_BUCKET_NAME=image-manager
+```
+
+### Docker対応
+
+- マルチステージビルド
+- Node.js 18-alpine使用
+- ポート8080公開
+- 非rootユーザーで実行
+
+### 開発プロセス
+
+#### ブランチ戦略
+- **フィーチャーブランチ**: `feature/image-manager-backend`
+
+#### プルリクエスト
+- **PR #3**: Add backend API server for image management
+- **URL**: https://github.com/matildatilda/image_manager/pull/3
+
+#### コミット履歴
+1. **初回コミット** (edda121)
+   - Express APIサーバー構築
+   - JWT認証システム実装
+   - 画像アップロード機能実装
+   - S3統合（LocalStack対応）
+   - Docker構成追加
+
+### セキュリティ考慮事項
+
+- パスワードのbcryptハッシュ化（ソルト10ラウンド）
+- JWTトークンベース認証
+- ファイルタイプ検証（画像のみ許可）
+- ファイルサイズ制限（5MB）
+- Rate Limiting実装
+- CORS設定
+- Helmetによるセキュリティヘッダー
+
 ## 今後の改善案
 
-- [ ] バックエンドAPIとの連携（画像の永続化）
+- [x] バックエンドAPIとの連携（画像の永続化）
+- [ ] データベース統合（現在はMap使用）
 - [ ] 画像編集機能（トリミング、回転など）
 - [ ] 画像フィルター・検索機能
 - [ ] ページネーション（大量の画像の場合）
@@ -118,6 +258,8 @@ frontend/
 - [ ] エラーハンドリングの強化
 - [ ] ファイルサイズ制限の実装
 - [ ] 対応画像フォーマットの拡張
+- [ ] WebSocket対応（リアルタイム更新）
+- [ ] キャッシュ戦略の実装
 
 ## 参考リンク
 
