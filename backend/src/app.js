@@ -57,7 +57,13 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Not Found' });
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV}`);
-});
+// テスト用にappをエクスポート
+module.exports = app;
+
+// 直接実行された場合のみサーバー起動
+if (require.main === module) {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV}`);
+  });
+}
