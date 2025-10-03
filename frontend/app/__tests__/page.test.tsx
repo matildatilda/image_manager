@@ -5,7 +5,7 @@ import Home from '../page';
 const mockRandomUUID = jest.fn(() => 'test-uuid');
 global.crypto = {
   randomUUID: mockRandomUUID,
-} as any;
+} as unknown as Crypto;
 
 describe('Home Page', () => {
   it('renders the page title', () => {

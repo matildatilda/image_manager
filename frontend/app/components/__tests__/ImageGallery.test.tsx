@@ -51,7 +51,7 @@ describe('ImageGallery', () => {
       download: '',
       click: jest.fn(),
     };
-    const createElementSpy = jest.spyOn(document, 'createElement').mockReturnValue(mockLink as any);
+    const createElementSpy = jest.spyOn(document, 'createElement').mockReturnValue(mockLink as unknown as HTMLElement);
 
     const downloadButtons = screen.getAllByText('Download');
     fireEvent.click(downloadButtons[0]);
