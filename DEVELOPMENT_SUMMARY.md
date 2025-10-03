@@ -246,6 +246,90 @@ S3_BUCKET_NAME=image-manager
 - CORS設定
 - Helmetによるセキュリティヘッダー
 
+## バックエンドテストの実装
+
+### 概要
+2025-10-03に、バックエンドAPIの包括的なテストスイートとJest設定を追加しました。
+
+### 技術スタック
+- **テストフレームワーク**: Jest 29.7.0
+- **HTTPテスト**: Supertest 6.3.3
+- **カバレッジツール**: Jest Coverage
+
+### 実装したテスト
+
+#### 1. ヘルスチェックテスト ([health.test.js](backend/tests/health.test.js))
+- GET /health エンドポイントの正常動作確認
+- ステータス200とメッセージ検証
+
+#### 2. 認証テスト ([auth.test.js](backend/tests/auth.test.js))
+- ユーザー登録機能のテスト
+- ログイン機能のテスト
+- 認証トークン検証のテスト
+- 不正なリクエストのエラーハンドリング
+
+#### 3. エラーハンドリングテスト ([error-handling.test.js](backend/tests/error-handling.test.js))
+- 404エラーの処理確認
+- 存在しないルートのテスト
+
+### Jest設定
+
+```json
+{
+  "testEnvironment": "node",
+  "coveragePathIgnorePatterns": ["/node_modules/"],
+  "testMatch": ["**/tests/**/*.test.js"],
+  "setupFilesAfterEnv": ["<rootDir>/tests/setup.js"]
+}
+```
+
+### NPMスクリプト追加
+- `npm test`: カバレッジレポート付きテスト実行
+- `npm run test:watch`: ウォッチモードでテスト実行
+
+### CI/CD統合
+GitHub Actions workflow ([.github/workflows/backend-test.yml](.github/workflows/backend-test.yml))を更新:
+- Node.js 18でテスト実行
+- 依存関係のインストール
+- テストスイートの実行
+- カバレッジレポート生成
+
+### app.js の修正
+- テスト用にappをエクスポート
+- 直接実行時のみサーバー起動（`require.main === module`チェック）
+
+### .gitignore 追加
+[backend/.gitignore](backend/.gitignore)を作成:
+```
+node_modules/
+coverage/
+```
+
+### 開発プロセス
+
+#### ブランチ戦略
+- **フィーチャーブランチ**: `feature/add-test`
+
+#### プルリクエスト
+- **PR #5**: Add backend tests and Jest configuration
+- **URL**: https://github.com/matildatilda/image_manager/pull/5
+
+#### コミット履歴
+1. **初回コミット** (38a60a7)
+   - テストスイート追加（health, auth, error-handling）
+   - Jest設定とカバレッジ設定
+   - app.jsをテスト用に修正
+   - backend/.gitignore追加
+   - GitHub Actions workflow更新
+
+### テスト項目
+
+- [x] ヘルスチェックエンドポイントのテスト
+- [x] 認証機能の包括的テスト
+- [x] エラーハンドリングのテスト
+- [x] Jest設定とカバレッジレポート
+- [x] CI/CDパイプラインでのテスト実行
+
 ## 今後の改善案
 
 - [x] バックエンドAPIとの連携（画像の永続化）
@@ -271,4 +355,4 @@ S3_BUCKET_NAME=image-manager
 ---
 
 **開発者**: Claude Code
-**最終更新**: 2025-10-02
+**最終更新**: 2025-10-03
