@@ -330,6 +330,154 @@ coverage/
 - [x] Jest設定とカバレッジレポート
 - [x] CI/CDパイプラインでのテスト実行
 
+## フロントエンドテストの実装
+
+### 概要
+2025-10-03に、フロントエンドReactコンポーネントの包括的なユニットテストスイートとJest設定を追加しました。
+
+### 技術スタック
+- **テストフレームワーク**: Jest 30.2.0
+- **テストライブラリ**: React Testing Library 16.3.0
+- **ユーザーイベント**: @testing-library/user-event 14.6.1
+- **TypeScript対応**: ts-node, @types/jest
+
+### 実装したテスト
+
+#### 1. ImageUploaderコンポーネントテスト ([ImageUploader.test.tsx](frontend/app/components/__tests__/ImageUploader.test.tsx))
+- デフォルトUIの表示確認
+- ファイルダイアログの起動テスト
+- ファイルアップロード処理のテスト
+- 画像ファイルのみ処理する検証
+- ドラッグ&ドロップ機能のテスト（dragover, dragleave, drop）
+- 複数ファイルアップロードのテスト
+- プレビュー表示のテスト
+- **テスト数**: 9件
+
+#### 2. ImageGalleryコンポーネントテスト ([ImageGallery.test.tsx](frontend/app/components/__tests__/ImageGallery.test.tsx))
+- 空の状態の表示確認
+- 画像の表示とレイアウトテスト
+- ファイル名の表示確認
+- ダウンロードボタンの表示と動作テスト
+- 削除ボタンの条件付き表示テスト
+- onDeleteコールバックの呼び出しテスト
+- 画像カウントの表示確認
+- 画像srcの正しさ検証
+- グリッドレイアウト構造のテスト
+- **テスト数**: 11件
+
+#### 3. Homeページ統合テスト ([page.test.tsx](frontend/app/__tests__/page.test.tsx))
+- ページタイトルと説明の表示確認
+- ImageUploaderコンポーネントの表示テスト
+- ImageGalleryコンポーネントの表示テスト
+- 画像アップロード時のギャラリー追加テスト
+- アップロード画像の表示確認
+- 複数画像アップロードのテスト
+- 削除機能の統合テスト
+- UUID生成による一意なID管理のテスト
+- セクションヘッダーの表示確認
+- **テスト数**: 10件
+
+### Jest設定
+
+[jest.config.ts](frontend/jest.config.ts):
+```typescript
+{
+  coverageProvider: 'v8',
+  testEnvironment: 'jsdom',
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  moduleNameMapper: { '^@/(.*)$': '<rootDir>/$1' },
+  testMatch: ['**/__tests__/**/*.test.ts?(x)']
+}
+```
+
+[jest.setup.ts](frontend/jest.setup.ts):
+```typescript
+import '@testing-library/jest-dom';
+```
+
+### NPMスクリプト追加
+- `npm test`: テスト実行
+- `npm run test:watch`: ウォッチモードでテスト実行
+- `npm run test:coverage`: カバレッジレポート付きテスト実行
+
+### テスト結果
+✅ **全30件のテストが成功**
+- ImageUploader: 9件
+- ImageGallery: 11件
+- Home page: 10件
+
+### 技術的な課題と解決策
+
+#### 課題1: DOM要素の取得ミス
+**問題**: `closest('div')` で取得した要素が意図したものと異なる
+
+**解決策**:
+```typescript
+// 修正前
+const uploadArea = screen.getByText('...').closest('div');
+
+// 修正後
+const { container } = render(...);
+const uploadArea = container.querySelector('.border-dashed') as HTMLElement;
+```
+
+#### 課題2: TypeScript lintエラー (`@typescript-eslint/no-explicit-any`)
+**問題**: `as any` の使用がlintエラーになる
+
+**解決策**:
+```typescript
+// 修正前
+global.crypto = { randomUUID: mockRandomUUID } as any;
+
+// 修正後
+global.crypto = { randomUUID: mockRandomUUID } as unknown as Crypto;
+```
+
+#### 課題3: Object.definePropertyの再定義エラー
+**問題**: プロパティを再定義できない
+
+**解決策**:
+```typescript
+Object.defineProperty(fileInput, 'files', {
+  value: [file],
+  configurable: true,  // 再定義可能に設定
+});
+```
+
+### CI/CD統合
+GitHub Actions workflow ([.github/workflows/frontend.yml](.github/workflows/frontend.yml)):
+- Vercelへのデプロイ前にテスト実行
+- TypeScript lintチェック
+- 全テスト成功を確認
+
+### 開発プロセス
+
+#### ブランチ戦略
+- **フィーチャーブランチ**: `feature/add-frontend-test`
+
+#### プルリクエスト
+- **PR #6**: Add frontend unit tests
+- **URL**: https://github.com/matildatilda/image_manager/pull/6
+
+#### コミット履歴
+1. **初回コミット** (c09d6fe)
+   - Jest設定とReact Testing Library導入
+   - 3つのテストスイート追加（30テスト）
+   - package.jsonへのテストスクリプト追加
+
+2. **Lint修正コミット** (b7e15da)
+   - TypeScript lintエラー修正
+   - `as any` を適切な型アサーションに変更
+
+### テスト項目
+
+- [x] ImageUploaderの全機能テスト
+- [x] ImageGalleryの全機能テスト
+- [x] Homeページの統合テスト
+- [x] Jest設定とNext.js統合
+- [x] TypeScript型安全性の確保
+- [x] CI/CDパイプラインでのテスト実行
+
 ## 今後の改善案
 
 - [x] バックエンドAPIとの連携（画像の永続化）
